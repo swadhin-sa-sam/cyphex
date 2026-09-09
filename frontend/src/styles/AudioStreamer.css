@@ -1,0 +1,39 @@
+/* CYPHEX Audio Streamer Scoped Styles */
+
+.audio-meter-bar {
+  transition: width 60ms linear, background-color 100ms ease;
+  box-shadow: 0 0 8px currentColor;
+}
+
+.on-air-badge {
+  animation: on-air-blink 1.5s infinite ease-in-out;
+}
+
+@keyframes on-air-blink {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.4;
+    transform: scale(0.92);
+  }
+}
+
+.btn-stream-active {
+  box-shadow: 0 0 16px rgba(239, 68, 68, 0.4);
+  animation: btn-danger-pulse 2s infinite ease-in-out;
+}
+
+@keyframes btn-danger-pulse {
+  0%, 100% {
+    box-shadow: 0 0 12px rgba(239, 68, 68, 0.35);
+  }
+  50% {
+    box-shadow: 0 0 22px rgba(239, 68, 68, 0.65);
+  }
+}
+
+.btn-stream-idle:hover {
+  box-shadow: 0 0 16px rgba(6, 182, 212, 0.4);
+}

@@ -1,0 +1,23 @@
+/* CYPHEX Prosody Metrics Scoped Styles */
+
+.prosody-meter-track {
+  position: relative;
+  overflow: hidden;
+  background: #0b1120;
+  border: 1px solid rgba(30, 41, 59, 0.8);
+}
+
+.prosody-meter-fill {
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.3s ease;
+}
+
+.prosody-normal-zone {
+  pointer-events: none;
+  border-left: 1px dashed rgba(16, 185, 129, 0.4);
+  border-right: 1px dashed rgba(16, 185, 129, 0.4);
+}
+
+.prosody-value-num {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}

@@ -1,0 +1,13 @@
+__pycache__/
+*.pyc
+.venv/
+virtualenv/
+*.db
+*.sqlite3
+node_modules/
+dist/
+*.log
+.env
+models/*.pth
+tmpdir/
+models/huggingface/

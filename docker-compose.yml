@@ -1,0 +1,72 @@
+version: '3.8'
+
+services:
+  cyphex-backend:
+    build: 
+      context: ./backend
+    container_name: cyphex-backend
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql+asyncpg://cyphex:cyphex_secret@postgres:5432/cyphex
+      - SQLITE_FALLBACK_URL=sqlite+aiosqlite:///./data/cyphex.db
+      - REDIS_URL=redis://redis:6379
+      - MODEL_DEVICE=cpu
+      - JWT_SECRET_KEY=cyphex_enterprise_super_secret_jwt_key_2026_sih
+      - ACCESS_TOKEN_EXPIRE_MINUTES=1440
+    volumes:
+      - backend_data:/app/data
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: always
+
+  cyphex-frontend:
+    build:
+      context: ./frontend
+    container_name: cyphex-frontend
+    ports:
+      - "3000:80"
+    depends_on:
+      - cyphex-backend
+    restart: always
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: cyphex-postgres
+    environment:
+      - POSTGRES_USER=cyphex
+      - POSTGRES_PASSWORD=cyphex_secret
+      - POSTGRES_DB=cyphex
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cyphex -d cyphex"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+  redis:
+    image: redis:7.0-alpine
+    container_name: cyphex-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    restart: always
+
+volumes:
+  backend_data:
+  postgres_data:
+  redis_data:
+
