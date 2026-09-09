@@ -13,3 +13,4 @@ tmpdir/
 models/huggingface/
 
 *.key
+backend/cyphex_vault.key
