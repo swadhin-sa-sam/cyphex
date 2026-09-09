@@ -11,3 +11,5 @@ dist/
 models/*.pth
 tmpdir/
 models/huggingface/
+
+*.key
