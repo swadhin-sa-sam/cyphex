@@ -281,21 +281,21 @@ export const CallsManagerView: React.FC = () => {
         </div>
 
         {/* Filter controls */}
-        <div className="flex items-center gap-3 flex-wrap">
-          <div className="relative">
+        <div className="flex items-center gap-3 flex-wrap w-full md:w-auto">
+          <div className="relative w-full sm:w-64">
             <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none" />
             <input
               type="text"
               placeholder="Search call ID, caller, target..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="bg-white/[0.03] border border-white/[0.08] rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-white/20 w-64 font-mono transition"
+              className="bg-white/[0.03] border border-white/[0.08] rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-white/20 w-full font-mono transition"
             />
           </div>
 
           {/* Verdict Filter Bar */}
-          <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-lg border border-white/[0.08] text-xs">
-            <span className="text-[10px] font-mono uppercase font-bold text-slate-400 px-2 py-1 flex items-center gap-1">
+          <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-lg border border-white/[0.08] text-xs overflow-x-auto touch-scroll-x no-scrollbar max-w-full">
+            <span className="text-[10px] font-mono uppercase font-bold text-slate-400 px-2 py-1 flex items-center gap-1 shrink-0">
               <Filter className="w-3 h-3 text-cyan-400" />
               VERDICT:
             </span>
@@ -310,7 +310,7 @@ export const CallsManagerView: React.FC = () => {
                 <button
                   key={v}
                   onClick={() => setFilterVerdict(v)}
-                  className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-medium uppercase transition-all ${
+                  className={`px-2.5 py-1 rounded-md text-[10px] font-mono font-medium uppercase shrink-0 transition-all ${
                     isActive ? activeClass : 'text-slate-400 hover:text-white'
                   }`}
                 >
@@ -351,9 +351,89 @@ export const CallsManagerView: React.FC = () => {
         </div>
       )}
 
-      {/* Call Records Table */}
-      <div className="premium-card p-4 overflow-x-auto">
-        <table className="w-full text-left border-collapse">
+      {/* Call Records: Mobile Adaptive Card View (< md) */}
+      <div className="flex flex-col gap-3 md:hidden">
+        {filteredCalls.map((call) => (
+          <div key={call.id} className="premium-card p-4 flex flex-col gap-3">
+            <div className="flex justify-between items-start">
+              <div>
+                <button
+                  onClick={() => setSelectedCall(call)}
+                  className="font-mono text-cyan-300 font-bold text-xs hover:underline flex items-center gap-1"
+                >
+                  <span>{call.id}</span>
+                  <ExternalLink className="w-3 h-3 text-slate-500" />
+                </button>
+                <div className="font-semibold text-slate-200 text-xs mt-0.5">{call.caller}</div>
+              </div>
+              <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-mono font-black border tracking-wider uppercase ${getVerdictBadge(call.verdict)}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${
+                  call.verdict === 'BLOCKED' ? 'bg-red-400 animate-ping' :
+                  call.verdict === 'MFA_REQUIRED' ? 'bg-amber-400' :
+                  call.verdict === 'MONITOR' ? 'bg-cyan-400' : 'bg-emerald-400'
+                }`} />
+                <span>{call.verdict.replace('_', ' ')}</span>
+              </span>
+            </div>
+
+            <div className="grid grid-cols-2 gap-2 text-[11px] font-mono p-2 rounded-lg bg-white/[0.02] border border-white/[0.04]">
+              <div>
+                <span className="text-[9px] text-slate-500 block uppercase">Target Extension</span>
+                <span className="text-slate-300 font-medium truncate block">{call.target}</span>
+              </div>
+              <div>
+                <span className="text-[9px] text-slate-500 block uppercase">Risk Score</span>
+                <span className={`font-bold text-xs ${
+                  call.riskScore >= 80 ? 'text-red-400' :
+                  call.riskScore >= 60 ? 'text-amber-400' :
+                  call.riskScore >= 30 ? 'text-cyan-400' : 'text-emerald-400'
+                }`}>
+                  {call.riskScore}%
+                </span>
+              </div>
+              <div className="col-span-2">
+                <span className="text-[9px] text-slate-500 block uppercase">Language / Marker</span>
+                <span className="text-slate-300 truncate block">{call.language} • {call.attackType || 'Natural Speech'}</span>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-1 border-t border-white/[0.04]">
+              <span className="text-[10px] text-slate-500 font-mono">{call.timestamp} • {call.duration}</span>
+              <div className="flex items-center gap-1.5">
+                <button
+                  onClick={() => handleTogglePlay(call)}
+                  className={`p-1.5 rounded-lg border text-xs font-mono font-semibold flex items-center gap-1 ${
+                    playingCallId === call.id
+                      ? 'bg-red-500 text-white border-red-400'
+                      : 'bg-slate-900 border-white/[0.08] text-slate-300'
+                  }`}
+                >
+                  {playingCallId === call.id ? <Square className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  <span>{playingCallId === call.id ? 'Stop' : 'Audio'}</span>
+                </button>
+                <button
+                  onClick={() => setSelectedCall(call)}
+                  className="p-1.5 rounded-lg bg-slate-900 border border-white/[0.08] text-cyan-300 text-xs font-mono font-semibold flex items-center gap-1"
+                >
+                  <Sliders className="w-3.5 h-3.5" />
+                  <span>Dossier</span>
+                </button>
+                <button
+                  onClick={() => handleDownloadEvidence(call)}
+                  className="p-1.5 rounded-lg bg-slate-900 border border-white/[0.08] text-slate-400"
+                  title="Download Evidence"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* Call Records: Desktop / Tablet Table View (>= md) */}
+      <div className="premium-card p-4 overflow-x-auto touch-scroll-x no-scrollbar hidden md:block">
+        <table className="w-full text-left border-collapse min-w-[700px]">
           <thead>
             <tr className="border-b border-white/[0.06] text-[10px] font-mono uppercase text-slate-400 tracking-wider">
               <th className="pb-3 pl-2">Session ID</th>
@@ -453,8 +533,8 @@ export const CallsManagerView: React.FC = () => {
 
       {/* Call Telemetry Inspection Modal */}
       {selectedCall && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
-          <div className="premium-card p-6 w-full max-w-xl border border-white/20 shadow-2xl relative flex flex-col gap-4">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-fadeIn">
+          <div className="premium-card p-4 sm:p-6 w-full max-w-xl max-h-[90vh] overflow-y-auto no-scrollbar border border-white/20 shadow-2xl relative flex flex-col gap-4">
             <div className="flex justify-between items-start border-b border-white/[0.08] pb-3">
               <div>
                 <div className="flex items-center gap-2 mb-1">
@@ -463,7 +543,7 @@ export const CallsManagerView: React.FC = () => {
                     {selectedCall.verdict}
                   </span>
                 </div>
-                <h3 className="text-base font-bold text-white">Call Forensic Interception Dossier</h3>
+                <h3 className="text-sm sm:text-base font-bold text-white">Call Forensic Interception Dossier</h3>
               </div>
               <button
                 onClick={() => setSelectedCall(null)}
@@ -473,7 +553,7 @@ export const CallsManagerView: React.FC = () => {
               </button>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
               <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06]">
                 <span className="text-[10px] text-slate-500 block mb-0.5">ORIGIN CALLER</span>
                 <span className="text-slate-200 font-bold">{selectedCall.caller}</span>

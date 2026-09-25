@@ -127,6 +127,10 @@ const Dashboard: React.FC = () => {
   };
 
   // Live UTC Clock for SOC Telemetry
+  const [layoutMode, setLayoutMode] = useState<'FLUID' | 'CONTAINED'>(() => {
+    return (localStorage.getItem('cyphex_layout_mode') as 'FLUID' | 'CONTAINED') || 'FLUID';
+  });
+
   const [utcTime, setUtcTime] = useState('');
   useEffect(() => {
     const updateTime = () => {
@@ -139,49 +143,125 @@ const Dashboard: React.FC = () => {
   }, []);
 
   return (
-    <div className="dashboard-container min-h-screen p-5 sm:p-8 flex flex-col gap-6 max-w-[1640px] mx-auto">
+    <div className={`dashboard-container min-h-screen p-3 sm:p-5 md:p-6 lg:p-8 flex flex-col gap-4 sm:gap-6 transition-all duration-300 ${
+      layoutMode === 'FLUID' ? 'w-full max-w-none' : 'w-full max-w-[1640px] mx-auto'
+    }`}>
       {/* Top Executive Command Header */}
-      <header className="premium-card px-5 py-3.5 flex flex-wrap justify-between items-center gap-4 relative z-10 pro-card-glow">
-        {/* Left: Brand & Identity */}
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-b from-white/15 to-white/5 border border-white/20 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.3)]">
-            <Shield className="w-5 h-5 text-white" />
-          </div>
-          <div>
-            <div className="flex items-center gap-2.5">
-              <h1 className="text-sm font-bold tracking-wider text-white font-mono uppercase">
-                CYPHEX
-              </h1>
-              <span className="text-[9px] bg-white/[0.06] text-slate-300 font-mono px-2 py-0.5 rounded-md border border-white/[0.1] font-semibold tracking-wider">
-                v1.0
-              </span>
-              <span className="inline-flex items-center gap-1.5 text-[10px] font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-500/40 px-2 py-0.5 rounded-md shadow-sm">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
-                <span className="font-semibold tracking-wider">SOC ACTIVE</span>
-              </span>
+      <header className="premium-card p-3.5 sm:p-4 md:p-5 flex flex-col gap-3 sm:gap-4 relative z-10 pro-card-glow">
+        {/* Top Row: Brand & Quick Operator Controls */}
+        <div className="flex flex-wrap justify-between items-center gap-3 w-full">
+          {/* Left: Brand & Identity */}
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-b from-white/15 to-white/5 border border-white/20 flex items-center justify-center shadow-[0_4px_12px_rgba(0,0,0,0.5),inset_0_1px_0_rgba(255,255,255,0.3)] shrink-0">
+              <Shield className="w-4 h-4 sm:w-5 sm:h-5 text-white" />
             </div>
-            <p className="text-[11px] text-[#94a3b8] tracking-tight font-medium">
-              Enterprise Voice Biometrics & Deepfake Defense Platform
-            </p>
+            <div>
+              <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap">
+                <h1 className="text-xs sm:text-sm font-bold tracking-wider text-white font-mono uppercase">
+                  CYPHEX
+                </h1>
+                <span className="text-[9px] bg-white/[0.06] text-slate-300 font-mono px-1.5 sm:px-2 py-0.5 rounded-md border border-white/[0.1] font-semibold tracking-wider">
+                  v1.0
+                </span>
+                <span className="inline-flex items-center gap-1.5 text-[9px] sm:text-[10px] font-mono text-emerald-400 bg-emerald-950/50 border border-emerald-500/40 px-2 py-0.5 rounded-md shadow-sm">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_6px_#34d399]" />
+                  <span className="font-semibold tracking-wider">SOC ACTIVE</span>
+                </span>
+              </div>
+              <p className="text-[10px] sm:text-[11px] text-[#94a3b8] tracking-tight font-medium hidden sm:block">
+                Enterprise Voice Biometrics & Deepfake Defense Platform
+              </p>
+            </div>
+          </div>
+
+          {/* Right: Controls, Notifications & Operator */}
+          <div className="flex items-center gap-2 sm:gap-2.5 flex-wrap ml-auto">
+            {/* Policy Profile Selector */}
+            <div className="flex items-center gap-1.5 bg-white/[0.03] px-2.5 py-1.5 rounded-lg border border-white/[0.09] text-xs">
+              <Settings2 className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+              <select
+                value={profile}
+                onChange={(e) => setProfile(e.target.value)}
+                disabled={isStreaming || isSimulating}
+                className="bg-transparent text-slate-200 font-mono text-xs focus:outline-none cursor-pointer disabled:opacity-50 pr-1 font-medium max-w-[130px] sm:max-w-none truncate"
+              >
+                <option value="STANDARD" className="bg-[#0b0d13] text-white">Standard Profile</option>
+                <option value="HIGH_VALUE_TRANSACTION" className="bg-[#0b0d13] text-white">Wire Transfer (&gt;$100k)</option>
+                <option value="PRIVILEGED_ACCESS" className="bg-[#0b0d13] text-white">Executive Clearance</option>
+              </select>
+            </div>
+
+            {/* Attack Simulator Trigger */}
+            <button
+              onClick={() => setIsDemoModalOpen(true)}
+              className={`vercel-btn-secondary px-2.5 sm:px-3 text-xs ${isSimulating ? 'border-red-500 text-red-300 bg-red-950/40' : ''}`}
+              title="Threat Simulator"
+            >
+              <Flame className="w-3.5 h-3.5 text-red-400 shrink-0" />
+              <span className="hidden sm:inline">{isSimulating ? 'Threat Active' : 'Threat Simulator'}</span>
+              <span className="sm:hidden">{isSimulating ? 'Threat' : 'Simulate'}</span>
+            </button>
+
+            {/* Notifications Bell */}
+            <button 
+              onClick={() => setActiveTab('INCIDENTS')}
+              className="vercel-btn-secondary px-2.5 relative"
+              title="Active Security Notifications"
+            >
+              <Bell className="w-3.5 h-3.5 text-slate-300 hover:text-white" />
+              <span className="w-2 h-2 rounded-full bg-red-500 absolute top-1 right-1" />
+            </button>
+
+            {/* Display Theme Switcher */}
+            <button
+              onClick={() => setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')}
+              className="vercel-btn-secondary px-2.5"
+              title={`Switch to ${theme === 'DARK' ? 'Tactical Light' : 'Dark Obsidian'} Mode`}
+            >
+              {theme === 'DARK' ? (
+                <Sun className="w-3.5 h-3.5 text-amber-400" />
+              ) : (
+                <Moon className="w-3.5 h-3.5 text-cyan-400" />
+              )}
+            </button>
+
+            {/* Operator Auth Button */}
+            <button
+              onClick={() => setIsAuthModalOpen(true)}
+              className="vercel-btn-secondary px-2.5 sm:px-3"
+            >
+              {currentUser ? (
+                <>
+                  <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
+                  <span className="font-mono text-xs font-semibold">{currentUser.username}</span>
+                </>
+              ) : (
+                <>
+                  <User className="w-3.5 h-3.5 text-[#8a8f98]" />
+                  <span className="hidden sm:inline">Operator</span>
+                </>
+              )}
+            </button>
+
+            {/* Live Audio Intercept Streamer */}
+            <AudioStreamer
+              sessionId={sessionId}
+              profile={profile}
+              selectedSpeakerId={selectedSpeakerId}
+              onScoreUpdate={handleScoreUpdate}
+              onAudioData={handleAudioData}
+              onStreamStateChange={setIsStreaming}
+            />
           </div>
         </div>
 
-        {/* Center: Search & Protection Status */}
-        <div className="flex items-center gap-3">
-          <div className="relative hidden md:flex items-center">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 pointer-events-none" />
-            <input 
-              type="text" 
-              placeholder="Search caller ID, SIP trunk, ANI..." 
-              className="bg-white/[0.03] border border-white/[0.08] rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 w-60 focus:outline-none focus:border-white/20 font-mono transition"
-            />
-          </div>
-
-          {/* Linear Segmented Nav */}
-          <nav className="linear-tab-bar overflow-x-auto">
+        {/* Bottom Row: Linear Navigation Tab Bar & Search */}
+        <div className="flex items-center justify-between gap-3 pt-2.5 border-t border-white/[0.06] w-full">
+          {/* Segmented Nav Tabs */}
+          <nav className="linear-tab-bar overflow-x-auto touch-scroll-x no-scrollbar w-full md:w-auto max-w-full">
             <button
               onClick={() => setActiveTab('RADAR')}
-              className={`linear-tab-item ${activeTab === 'RADAR' ? 'linear-tab-item-active' : ''}`}
+              className={`linear-tab-item shrink-0 ${activeTab === 'RADAR' ? 'linear-tab-item-active' : ''}`}
             >
               <Radar className="w-3.5 h-3.5" />
               <span>Overview</span>
@@ -189,7 +269,7 @@ const Dashboard: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('CALLS')}
-              className={`linear-tab-item ${activeTab === 'CALLS' ? 'linear-tab-item-active' : ''}`}
+              className={`linear-tab-item shrink-0 ${activeTab === 'CALLS' ? 'linear-tab-item-active' : ''}`}
             >
               <PhoneCall className="w-3.5 h-3.5" />
               <span>Call Analysis</span>
@@ -197,7 +277,7 @@ const Dashboard: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('INCIDENTS')}
-              className={`linear-tab-item ${activeTab === 'INCIDENTS' ? 'linear-tab-item-active text-red-300' : ''}`}
+              className={`linear-tab-item shrink-0 ${activeTab === 'INCIDENTS' ? 'linear-tab-item-active text-red-300' : ''}`}
             >
               <ShieldAlert className="w-3.5 h-3.5" />
               <span>Incidents</span>
@@ -206,7 +286,7 @@ const Dashboard: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('ANALYTICS')}
-              className={`linear-tab-item ${activeTab === 'ANALYTICS' ? 'linear-tab-item-active' : ''}`}
+              className={`linear-tab-item shrink-0 ${activeTab === 'ANALYTICS' ? 'linear-tab-item-active' : ''}`}
             >
               <BarChart3 className="w-3.5 h-3.5" />
               <span>Risk Intelligence</span>
@@ -214,7 +294,7 @@ const Dashboard: React.FC = () => {
 
             <button
               onClick={() => setActiveTab('SETTINGS')}
-              className={`linear-tab-item ${activeTab === 'SETTINGS' ? 'linear-tab-item-active' : ''}`}
+              className={`linear-tab-item shrink-0 ${activeTab === 'SETTINGS' ? 'linear-tab-item-active' : ''}`}
             >
               <SettingsIcon className="w-3.5 h-3.5" />
               <span>Settings</span>
@@ -223,83 +303,16 @@ const Dashboard: React.FC = () => {
               )}
             </button>
           </nav>
-        </div>
 
-        {/* Right: Controls, Notifications & Operator */}
-        <div className="flex items-center gap-2.5 flex-wrap">
-          {/* Notifications Bell */}
-          <button 
-            onClick={() => setActiveTab('INCIDENTS')}
-            className="vercel-btn-secondary px-2.5 relative"
-            title="Active Security Notifications"
-          >
-            <Bell className="w-3.5 h-3.5 text-slate-300 hover:text-white" />
-            <span className="w-2 h-2 rounded-full bg-red-500 absolute top-1 right-1" />
-          </button>
-          {/* Policy Profile Selector */}
-          <div className="flex items-center gap-2 bg-white/[0.03] px-3 py-1.5 rounded-lg border border-white/[0.09] text-xs">
-            <Settings2 className="w-3.5 h-3.5 text-cyan-400" />
-            <select
-              value={profile}
-              onChange={(e) => setProfile(e.target.value)}
-              disabled={isStreaming || isSimulating}
-              className="bg-transparent text-slate-200 font-mono text-xs focus:outline-none cursor-pointer disabled:opacity-50 pr-2 font-medium"
-            >
-              <option value="STANDARD" className="bg-[#0b0d13] text-white">Standard Profile</option>
-              <option value="HIGH_VALUE_TRANSACTION" className="bg-[#0b0d13] text-white">Wire Transfer (&gt;$100k)</option>
-              <option value="PRIVILEGED_ACCESS" className="bg-[#0b0d13] text-white">Executive Clearance</option>
-            </select>
+          {/* Quick Search */}
+          <div className="relative hidden lg:flex items-center shrink-0">
+            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-2.5 pointer-events-none" />
+            <input 
+              type="text" 
+              placeholder="Search caller ID, SIP trunk..." 
+              className="bg-white/[0.03] border border-white/[0.08] rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 w-56 focus:outline-none focus:border-white/20 font-mono transition"
+            />
           </div>
-
-          {/* Attack Simulator Trigger */}
-          <button
-            onClick={() => setIsDemoModalOpen(true)}
-            className={`vercel-btn-secondary ${isSimulating ? 'border-red-500 text-red-300 bg-red-950/40' : ''}`}
-          >
-            <Flame className="w-3.5 h-3.5 text-red-400" />
-            <span>{isSimulating ? 'Threat Active' : 'Threat Simulator'}</span>
-          </button>
-
-          {/* Display Theme Switcher */}
-          <button
-            onClick={() => setTheme(theme === 'DARK' ? 'LIGHT' : 'DARK')}
-            className="vercel-btn-secondary px-2.5"
-            title={`Switch to ${theme === 'DARK' ? 'Tactical Light' : 'Dark Obsidian'} Mode`}
-          >
-            {theme === 'DARK' ? (
-              <Sun className="w-3.5 h-3.5 text-amber-400" />
-            ) : (
-              <Moon className="w-3.5 h-3.5 text-cyan-400" />
-            )}
-          </button>
-
-          {/* Operator Auth Button */}
-          <button
-            onClick={() => setIsAuthModalOpen(true)}
-            className="vercel-btn-secondary"
-          >
-            {currentUser ? (
-              <>
-                <UserCheck className="w-3.5 h-3.5 text-cyan-400" />
-                <span className="font-mono text-xs font-semibold">{currentUser.username}</span>
-              </>
-            ) : (
-              <>
-                <User className="w-3.5 h-3.5 text-[#8a8f98]" />
-                <span>Operator</span>
-              </>
-            )}
-          </button>
-
-          {/* Live Audio Intercept Streamer */}
-          <AudioStreamer
-            sessionId={sessionId}
-            profile={profile}
-            selectedSpeakerId={selectedSpeakerId}
-            onScoreUpdate={handleScoreUpdate}
-            onAudioData={handleAudioData}
-            onStreamStateChange={setIsStreaming}
-          />
         </div>
       </header>
 
@@ -307,7 +320,7 @@ const Dashboard: React.FC = () => {
       {activeTab === 'RADAR' && (
         <div className="flex flex-col gap-6 flex-grow page-fade-enter">
           {/* Main Security Overview: Voice Security Command Center */}
-          <div className="premium-card px-6 py-4 flex flex-wrap justify-between items-center gap-4">
+          <div className="premium-card px-4 sm:px-6 py-4 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4">
             <div>
               <div className="flex items-center gap-2">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -320,28 +333,25 @@ const Dashboard: React.FC = () => {
               </p>
             </div>
 
-            {/* 4 Overview Statistics */}
-            <div className="flex items-center gap-6 flex-wrap font-mono">
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider text-[#94a3b8]">Total Calls Analyzed</span>
-                <span className="text-sm font-bold text-white">14,892</span>
+            {/* 4 Overview Statistics - Responsive Grid on Mobile */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 w-full lg:w-auto font-mono">
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] flex flex-col">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#94a3b8]">Total Calls Analyzed</span>
+                <span className="text-sm sm:text-base font-bold text-white">14,892</span>
               </div>
-              <div className="h-7 w-[1px] bg-white/[0.08]" />
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider text-[#94a3b8]">Threats Detected</span>
-                <span className="text-sm font-bold text-red-400">342</span>
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] flex flex-col">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#94a3b8]">Threats Detected</span>
+                <span className="text-sm sm:text-base font-bold text-red-400">342</span>
               </div>
-              <div className="h-7 w-[1px] bg-white/[0.08]" />
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider text-[#94a3b8]">Synthetic Voice Prob</span>
-                <span className={`text-sm font-bold ${currentScore >= 0.6 ? 'text-red-400' : 'text-emerald-400'}`}>
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] flex flex-col">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#94a3b8]">Synthetic Voice Prob</span>
+                <span className={`text-sm sm:text-base font-bold ${currentScore >= 0.6 ? 'text-red-400' : 'text-emerald-400'}`}>
                   {Math.round(currentScore * 100)}%
                 </span>
               </div>
-              <div className="h-7 w-[1px] bg-white/[0.08]" />
-              <div className="flex flex-col">
-                <span className="text-[10px] uppercase tracking-wider text-[#94a3b8]">High-Risk Sessions</span>
-                <span className="text-sm font-bold text-amber-400">18</span>
+              <div className="p-2.5 rounded-lg bg-white/[0.02] border border-white/[0.04] flex flex-col">
+                <span className="text-[9px] sm:text-[10px] uppercase tracking-wider text-[#94a3b8]">High-Risk Sessions</span>
+                <span className="text-sm sm:text-base font-bold text-amber-400">18</span>
               </div>
             </div>
           </div>

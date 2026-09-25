@@ -22,10 +22,10 @@ class SessionManager:
         self._lock = threading.Lock()
         self._max_history = max_history
 
-    def create_session(self, metadata: dict = None) -> Session:
-        session_id = f"SES-{uuid.uuid4().hex[:8].upper()}"
+    def create_session(self, session_id: str = None, metadata: dict = None) -> Session:
+        sid = session_id or f"SES-{uuid.uuid4().hex[:8].upper()}"
         session = Session(
-            id=session_id,
+            id=sid,
             created_at=time.time(),
             audio_buffer=CircularAudioBuffer(settings.WINDOW_SAMPLES),
             metadata=metadata or {}
@@ -36,7 +36,7 @@ class SessionManager:
                 inactive_keys = [k for k, v in self._sessions.items() if not v.is_active]
                 if inactive_keys:
                     del self._sessions[inactive_keys[0]]
-            self._sessions[session_id] = session
+            self._sessions[sid] = session
         return session
 
     def get_session(self, session_id: str) -> Session | None:

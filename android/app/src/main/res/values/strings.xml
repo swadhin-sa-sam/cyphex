@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">CYPHEX VoiceShield</string>
+    <string name="defense_active">SOC DEFENSE ARMED</string>
+    <string name="defense_inactive">PERMISSIONS REQUIRED</string>
+    <string name="simulate_incoming">Simulate Answered Incoming Call</string>
+    <string name="simulate_outgoing">Simulate Outgoing Call</string>
+    <string name="simulate_hangup">Simulate Call Hangup</string>
+</resources>
+

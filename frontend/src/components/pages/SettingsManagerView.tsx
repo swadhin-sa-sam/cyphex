@@ -21,7 +21,9 @@ type SettingsSection =
 interface SettingsManagerViewProps {
   currentUser?: SocOperator | null;
   currentTheme?: 'DARK' | 'LIGHT';
+  layoutMode?: 'FLUID' | 'CONTAINED';
   onThemeChange?: (theme: 'DARK' | 'LIGHT') => void;
+  onLayoutModeChange?: (mode: 'FLUID' | 'CONTAINED') => void;
   onAuthSuccess?: (user: SocOperator, token: string) => void;
   onLogout?: () => void;
 }
@@ -29,12 +31,18 @@ interface SettingsManagerViewProps {
 export const SettingsManagerView: React.FC<SettingsManagerViewProps> = ({
   currentUser,
   currentTheme = 'DARK',
+  layoutMode = 'FLUID',
   onThemeChange,
+  onLayoutModeChange,
   onAuthSuccess,
   onLogout,
 }) => {
   const [activeSection, setActiveSection] = useState<SettingsSection>('ACCOUNT');
   const [savedSuccess, setSavedSuccess] = useState<string | null>(null);
+  const [currentLayoutMode, setCurrentLayoutMode] = useState<'FLUID' | 'CONTAINED'>(() => {
+    return (localStorage.getItem('cyphex_layout_mode') as 'FLUID' | 'CONTAINED') || layoutMode;
+  });
+  const [mobileTouchOptimized, setMobileTouchOptimized] = useState(true);
 
   // 1. Account & Operator Auth State
   const [isRegisterMode, setIsRegisterMode] = useState(false);
@@ -109,6 +117,16 @@ export const SettingsManagerView: React.FC<SettingsManagerViewProps> = ({
     }
     triggerSaveNotification(`Display theme switched to ${newTheme === 'DARK' ? 'Dark Obsidian' : 'Tactical Light'}.`);
   };
+
+  const handleLayoutModeSelect = (mode: 'FLUID' | 'CONTAINED') => {
+    setCurrentLayoutMode(mode);
+    localStorage.setItem('cyphex_layout_mode', mode);
+    if (onLayoutModeChange) {
+      onLayoutModeChange(mode);
+    }
+    triggerSaveNotification(`Layout set to ${mode === 'FLUID' ? 'Fluid Full Window Auto-Adjust' : 'Standard Contained Console'}.`);
+  };
+
   const [language, setLanguage] = useState('EN_IN');
   const [autoRefreshInterval, setAutoRefreshInterval] = useState('2s');
   const [performanceMode, setPerformanceMode] = useState(true);
@@ -210,11 +228,41 @@ export const SettingsManagerView: React.FC<SettingsManagerViewProps> = ({
         )}
       </div>
 
+      {/* Mobile Horizontal Section Tabs (< lg screens) */}
+      <div className="flex lg:hidden overflow-x-auto touch-scroll-x no-scrollbar gap-1.5 p-1.5 bg-slate-950/70 rounded-xl border border-white/[0.08] mb-2">
+        {[
+          { id: 'ACCOUNT', label: 'Auth & Profile', icon: User },
+          { id: 'SECURITY', label: 'Security', icon: Shield },
+          { id: 'PRIVACY', label: 'Privacy', icon: Lock },
+          { id: 'DETECTION_AI', label: 'Detection AI', icon: Cpu },
+          { id: 'NOTIFICATIONS', label: 'Alerts', icon: Bell },
+          { id: 'BLOCKCHAIN', label: 'Web3', icon: Link2 },
+          { id: 'SYSTEM', label: 'System & Engine', icon: Monitor },
+        ].map((item) => {
+          const Icon = item.icon;
+          const isSelected = activeSection === item.id;
+          return (
+            <button
+              key={item.id}
+              onClick={() => setActiveSection(item.id as SettingsSection)}
+              className={`flex items-center gap-2 px-3 py-2 rounded-lg text-xs font-mono whitespace-nowrap transition-all ${
+                isSelected
+                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 font-bold shadow-sm'
+                  : 'text-slate-400 hover:text-white bg-white/[0.02] border border-transparent'
+              }`}
+            >
+              <Icon className={`w-3.5 h-3.5 ${isSelected ? 'text-cyan-400' : 'text-slate-500'}`} />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+      </div>
+
       {/* Main Settings Split: Sidebar (3 cols) + Content Stage (9 cols) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 items-start">
         
-        {/* Navigation Sidebar */}
-        <div className="lg:col-span-3 flex flex-col gap-1.5 premium-card p-3">
+        {/* Navigation Sidebar (Desktop >= lg) */}
+        <div className="hidden lg:flex lg:col-span-3 flex-col gap-1.5 premium-card p-3">
           {[
             { id: 'ACCOUNT', label: '1. Operator Auth & Profile', icon: User, badge: currentUser ? 'AUTHENTICATED' : 'LOGIN REQ' },
             { id: 'SECURITY', label: '2. Security Posture', icon: Shield, badge: 'ENHANCED' },
@@ -222,7 +270,7 @@ export const SettingsManagerView: React.FC<SettingsManagerViewProps> = ({
             { id: 'DETECTION_AI', label: '4. Detection & AI', icon: Cpu, badge: '4-LAYER' },
             { id: 'NOTIFICATIONS', label: '5. Notifications', icon: Bell, badge: 'LIVE' },
             { id: 'BLOCKCHAIN', label: '6. Web3 & Ledger', icon: Link2, badge: 'MAINNET' },
-            { id: 'SYSTEM', label: '7. System & Engine', icon: Monitor, badge: 'SUB-300ms' },
+            { id: 'SYSTEM', label: '7. System & Engine', icon: Monitor, badge: 'AUTO-ADJUST' },
           ].map((item) => {
             const Icon = item.icon;
             const isSelected = activeSection === item.id;
@@ -1045,7 +1093,77 @@ export const SettingsManagerView: React.FC<SettingsManagerViewProps> = ({
                 </div>
               </div>
 
+              {/* Auto-Adjust Window Size & Fluid Layout Configuration */}
+              <div className="p-4 rounded-xl bg-slate-950/80 border border-white/[0.06] flex flex-col gap-3 font-mono text-xs">
+                <div className="flex justify-between items-start">
+                  <div>
+                    <span className="text-xs font-bold text-white uppercase tracking-wider block flex items-center gap-1.5">
+                      <Sliders className="w-3.5 h-3.5 text-cyan-400" />
+                      Window Display Auto-Adjustment
+                    </span>
+                    <span className="text-[11px] text-slate-400">
+                      Auto-fit dashboard canvas, oscilloscope, risk telemetry, and audit tables to 100% of the browser window size.
+                    </span>
+                  </div>
+                  <span className="text-[10px] bg-cyan-950 text-cyan-300 border border-cyan-500/40 px-2 py-0.5 rounded font-bold">
+                    {currentLayoutMode === 'FLUID' ? 'FLUID EXPAND' : 'CONTAINED'}
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
+                  <button
+                    onClick={() => handleLayoutModeSelect('FLUID')}
+                    className={`p-3 rounded-lg border text-left flex flex-col gap-1 transition-all ${
+                      currentLayoutMode === 'FLUID'
+                        ? 'bg-cyan-500/15 border-cyan-500 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                        : 'bg-slate-900/80 border-white/[0.06] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-white">Fluid Auto-Adjust (Full Width)</span>
+                      {currentLayoutMode === 'FLUID' && <CheckCircle className="w-3.5 h-3.5 text-cyan-400" />}
+                    </div>
+                    <span className="text-[10px] text-slate-400 leading-relaxed">
+                      Expands dynamically to match any monitor, tablet, or mobile window size seamlessly.
+                    </span>
+                  </button>
+
+                  <button
+                    onClick={() => handleLayoutModeSelect('CONTAINED')}
+                    className={`p-3 rounded-lg border text-left flex flex-col gap-1 transition-all ${
+                      currentLayoutMode === 'CONTAINED'
+                        ? 'bg-cyan-500/15 border-cyan-500 text-cyan-200 shadow-[0_0_12px_rgba(6,182,212,0.25)]'
+                        : 'bg-slate-900/80 border-white/[0.06] text-slate-400 hover:text-white'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-xs text-white">Contained Console (1640px)</span>
+                      {currentLayoutMode === 'CONTAINED' && <CheckCircle className="w-3.5 h-3.5 text-cyan-400" />}
+                    </div>
+                    <span className="text-[10px] text-slate-400 leading-relaxed">
+                      Centers the SOC interface within a fixed maximum width for standard command terminals.
+                    </span>
+                  </button>
+                </div>
+              </div>
+
               <div className="space-y-3">
+                <div className="p-4 rounded-xl bg-slate-950/80 border border-white/[0.06] flex justify-between items-center">
+                  <div>
+                    <span className="text-xs font-bold text-slate-200 font-mono block">Mobile Touch & High-Density Optimization</span>
+                    <span className="text-[11px] text-slate-400">Enables swipeable tabs, touch-friendly buttons, and high-DPI waveform rendering on smartphones.</span>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={mobileTouchOptimized}
+                    onChange={(e) => {
+                      setMobileTouchOptimized(e.target.checked);
+                      triggerSaveNotification(`Mobile touch optimization ${e.target.checked ? 'enabled' : 'disabled'}.`);
+                    }}
+                    className="w-4 h-4 accent-cyan-500 rounded cursor-pointer"
+                  />
+                </div>
+
                 <div className="p-4 rounded-xl bg-slate-950/80 border border-white/[0.06] flex justify-between items-center">
                   <div>
                     <span className="text-xs font-bold text-slate-200 font-mono block">Telemetry Refresh Frequency</span>

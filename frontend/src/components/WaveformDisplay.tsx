@@ -8,8 +8,36 @@ interface WaveformDisplayProps {
 }
 
 const WaveformDisplay: React.FC<WaveformDisplayProps> = ({ audioData, isActive, vadStatus }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const bufferRef = useRef<number[]>([]);
+
+  // Auto-adjust canvas resolution dynamically to match viewport / container width
+  useEffect(() => {
+    const handleResize = () => {
+      if (!containerRef.current || !canvasRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const newWidth = Math.max(260, Math.floor(rect.width));
+      const newHeight = Math.max(120, Math.floor(rect.height));
+      
+      if (canvasRef.current.width !== newWidth || canvasRef.current.height !== newHeight) {
+        canvasRef.current.width = newWidth;
+        canvasRef.current.height = newHeight;
+      }
+    };
+
+    handleResize();
+    const observer = new ResizeObserver(handleResize);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
+    }
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -146,7 +174,10 @@ const WaveformDisplay: React.FC<WaveformDisplayProps> = ({ audioData, isActive, 
       </div>
 
       {/* Main Canvas Viewport with CRT Reticle Overlay */}
-      <div className="relative flex-grow bg-black rounded-lg overflow-hidden border border-white/[0.08] shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] h-44">
+      <div 
+        ref={containerRef}
+        className="relative flex-grow bg-black rounded-lg overflow-hidden border border-white/[0.08] shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] h-44"
+      >
         <canvas
           ref={canvasRef}
           width={640}
@@ -168,7 +199,7 @@ const WaveformDisplay: React.FC<WaveformDisplayProps> = ({ audioData, isActive, 
       </div>
 
       {/* Live Voice Authenticity & Signal Indicators Footer */}
-      <div className="grid grid-cols-4 gap-2 mt-3 pt-2.5 border-t border-white/[0.06] text-center font-mono text-[10px]">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-3 pt-2.5 border-t border-white/[0.06] text-center font-mono text-[10px]">
         <div className="p-1.5 rounded bg-white/[0.02] border border-white/[0.04]">
           <span className="text-[#94a3b8] block text-[9px] uppercase">Voice Authenticity</span>
           <span className="text-emerald-400 font-bold">{vadStatus ? 'ORGANIC' : 'VERIFYING'}</span>

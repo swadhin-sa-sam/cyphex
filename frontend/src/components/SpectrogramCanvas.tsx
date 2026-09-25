@@ -28,6 +28,7 @@ function computeFFT(samples: Float32Array, fftSize: number = 256): Float32Array 
 }
 
 const SpectrogramCanvas: React.FC<SpectrogramCanvasProps> = ({ audioData, anomalyFlags }) => {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isLogScale, setIsLogScale] = useState(true);
   const [colorScheme, setColorScheme] = useState<'CYBER' | 'INFERNO' | 'VIRIDIS'>('CYBER');
@@ -35,15 +36,36 @@ const SpectrogramCanvas: React.FC<SpectrogramCanvasProps> = ({ audioData, anomal
   const [isPaused, setIsPaused] = useState(false);
   const animationFrameRef = useRef<number | null>(null);
 
-  // Initialize canvas with obsidian background
+  // Auto-adjust canvas resolution dynamically to match viewport / container width
   useEffect(() => {
-    if (!canvasRef.current) return;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext('2d');
-    if (ctx) {
-      ctx.fillStyle = '#06090e';
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+    const handleResize = () => {
+      if (!containerRef.current || !canvasRef.current) return;
+      const rect = containerRef.current.getBoundingClientRect();
+      const newWidth = Math.max(260, Math.floor(rect.width));
+      const newHeight = Math.max(120, Math.floor(rect.height));
+      
+      if (canvasRef.current.width !== newWidth || canvasRef.current.height !== newHeight) {
+        canvasRef.current.width = newWidth;
+        canvasRef.current.height = newHeight;
+        const ctx = canvasRef.current.getContext('2d');
+        if (ctx) {
+          ctx.fillStyle = '#06090e';
+          ctx.fillRect(0, 0, newWidth, newHeight);
+        }
+      }
+    };
+
+    handleResize();
+    const observer = new ResizeObserver(handleResize);
+    if (containerRef.current) {
+      observer.observe(containerRef.current);
     }
+    window.addEventListener('resize', handleResize);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('resize', handleResize);
+    };
   }, []);
 
   // Ambient waterfall continuous scroll even during silence
@@ -256,6 +278,7 @@ const SpectrogramCanvas: React.FC<SpectrogramCanvasProps> = ({ audioData, anomal
 
         {/* Main Canvas Viewport */}
         <div 
+          ref={containerRef}
           className="relative flex-grow bg-black rounded-lg overflow-hidden border border-white/[0.08] shadow-[inset_0_2px_15px_rgba(0,0,0,0.8)] h-44 cursor-crosshair"
           onMouseMove={handleCanvasMouseMove}
           onMouseLeave={() => setHoverFreq(null)}

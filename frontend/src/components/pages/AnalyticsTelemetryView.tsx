@@ -97,13 +97,13 @@ export const AnalyticsTelemetryView: React.FC = () => {
           </p>
         </div>
 
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-lg border border-white/[0.08]">
+        <div className="flex items-center gap-2 flex-wrap w-full sm:w-auto justify-end">
+          <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-lg border border-white/[0.08] overflow-x-auto touch-scroll-x no-scrollbar max-w-full">
             {(['24H', '7D', '30D'] as const).map((r) => (
               <button
                 key={r}
                 onClick={() => setTimeRange(r)}
-                className={`px-3 py-1 rounded-md text-xs font-mono font-medium transition ${
+                className={`px-3 py-1 rounded-md text-xs font-mono font-medium shrink-0 transition ${
                   timeRange === r ? 'bg-white/10 text-white font-semibold shadow-sm' : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -114,11 +114,11 @@ export const AnalyticsTelemetryView: React.FC = () => {
 
           <button
             onClick={handleExportAnalytics}
-            className="vercel-btn-secondary px-3 py-1.5 text-xs flex items-center gap-1.5"
+            className="vercel-btn-secondary px-3 py-1.5 text-xs flex items-center gap-1.5 shrink-0"
             title="Download Analytics Digest"
           >
             <Download className="w-3.5 h-3.5" />
-            <span className="hidden sm:inline">Export</span>
+            <span className="inline sm:inline">Export</span>
           </button>
         </div>
       </div>
@@ -243,22 +243,22 @@ export const AnalyticsTelemetryView: React.FC = () => {
           </div>
 
           <div className="space-y-3 pt-1 text-xs">
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-950/80 border border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-0 p-2.5 rounded-xl bg-slate-950/80 border border-white/[0.06]">
               <span className="text-slate-200 font-medium">Hinglish / Indian English</span>
               <span className="text-cyan-300 font-mono font-bold">54.2% Volume • 99.1% Acc</span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-950/80 border border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-0 p-2.5 rounded-xl bg-slate-950/80 border border-white/[0.06]">
               <span className="text-slate-200 font-medium">Hindi (Standard & Regional Accents)</span>
               <span className="text-cyan-300 font-mono font-bold">22.8% Volume • 98.6% Acc</span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-950/80 border border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-0 p-2.5 rounded-xl bg-slate-950/80 border border-white/[0.06]">
               <span className="text-slate-200 font-medium">Tamil & Telugu (South Indian Telecom)</span>
               <span className="text-cyan-300 font-mono font-bold">14.1% Volume • 97.9% Acc</span>
             </div>
 
-            <div className="flex justify-between items-center p-2.5 rounded-xl bg-slate-950/80 border border-white/[0.06]">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-1 sm:gap-0 p-2.5 rounded-xl bg-slate-950/80 border border-white/[0.06]">
               <span className="text-slate-200 font-medium">Bengali, Marathi, Gujarati</span>
               <span className="text-cyan-300 font-mono font-bold">8.9% Volume • 98.2% Acc</span>
             </div>

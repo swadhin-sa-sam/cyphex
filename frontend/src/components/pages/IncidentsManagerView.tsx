@@ -78,6 +78,7 @@ export const IncidentsManagerView: React.FC = () => {
   const [incidents, setIncidents] = useState<IncidentCase[]>(MOCK_INCIDENTS);
   const [selectedIncident, setSelectedIncident] = useState<IncidentCase | null>(MOCK_INCIDENTS[0]);
   const [filterSeverity, setFilterSeverity] = useState<string>('ALL');
+  const [mobileView, setMobileView] = useState<'LIST' | 'DETAILS'>('LIST');
 
   const filteredIncidents = incidents.filter((inc) => {
     if (filterSeverity === 'ALL') return true;
@@ -198,8 +199,8 @@ Generated On       : ${new Date().toISOString()}
         </div>
 
         {/* Upgraded Severity Filter Bar */}
-        <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-lg border border-white/[0.08] text-xs">
-          <span className="text-[10px] font-mono uppercase font-bold text-slate-400 px-2.5 py-1 flex items-center gap-1.5">
+        <div className="flex items-center gap-1 bg-white/[0.03] p-1 rounded-lg border border-white/[0.08] text-xs overflow-x-auto touch-scroll-x no-scrollbar max-w-full">
+          <span className="text-[10px] font-mono uppercase font-bold text-slate-400 px-2.5 py-1 flex items-center gap-1.5 shrink-0">
             <Filter className="w-3.5 h-3.5 text-cyan-400" />
             SEVERITY:
           </span>
@@ -214,7 +215,7 @@ Generated On       : ${new Date().toISOString()}
               <button
                 key={sev}
                 onClick={() => setFilterSeverity(sev)}
-                className={`px-3 py-1 rounded-md text-[10px] font-mono font-medium uppercase transition-all ${
+                className={`px-3 py-1 rounded-md text-[10px] font-mono font-medium uppercase shrink-0 transition-all ${
                   isActive ? activeClass : 'text-slate-400 hover:text-white'
                 }`}
               >
@@ -233,23 +234,47 @@ Generated On       : ${new Date().toISOString()}
         </div>
       )}
 
+      {/* Mobile Sub-View Switcher (< lg) */}
+      <div className="flex lg:hidden items-center justify-between gap-2 p-1 bg-white/[0.03] rounded-xl border border-white/[0.08]">
+        <button
+          onClick={() => setMobileView('LIST')}
+          className={`flex-1 py-2 rounded-lg text-xs font-mono font-semibold transition ${
+            mobileView === 'LIST' ? 'bg-white/10 text-white shadow-sm' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          Incident Queue ({filteredIncidents.length})
+        </button>
+        <button
+          onClick={() => setMobileView('DETAILS')}
+          disabled={!selectedIncident}
+          className={`flex-1 py-2 rounded-lg text-xs font-mono font-semibold transition disabled:opacity-40 ${
+            mobileView === 'DETAILS' ? 'bg-cyan-500 text-slate-950 font-bold shadow-sm' : 'text-slate-400 hover:text-white'
+          }`}
+        >
+          Case Dossier {selectedIncident ? `(${selectedIncident.id})` : ''}
+        </button>
+      </div>
+
       {/* Main Incident Split View */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Column: Incidents List (5 cols) */}
-        <div className="lg:col-span-5 flex flex-col gap-2.5">
+        <div className={`lg:col-span-5 flex flex-col gap-2.5 ${mobileView === 'DETAILS' ? 'hidden lg:flex' : 'flex'}`}>
           {filteredIncidents.map((inc) => {
             const isSelected = selectedIncident?.id === inc.id;
             return (
               <div
                 key={inc.id}
-                onClick={() => setSelectedIncident(inc)}
+                onClick={() => {
+                  setSelectedIncident(inc);
+                  setMobileView('DETAILS');
+                }}
                 className={`p-4 rounded-xl border cursor-pointer transition-all ${
                   isSelected
                     ? 'bg-slate-900/90 border-cyan-500/60 shadow-[0_0_15px_rgba(6,182,212,0.15)]'
                     : 'bg-slate-950/60 border-white/[0.06] hover:border-white/[0.15]'
                 }`}
               >
-                <div className="flex justify-between items-center mb-1.5">
+                <div className="flex justify-between items-center mb-1.5 flex-wrap gap-1">
                   <div className="flex items-center gap-2">
                     <span className="text-xs font-mono font-bold text-cyan-300">{inc.id}</span>
                     <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[9px] font-mono font-black border tracking-wider uppercase ${getSeverityBadge(inc.severity)}`}>
@@ -276,12 +301,12 @@ Generated On       : ${new Date().toISOString()}
         </div>
 
         {/* Right Column: Case Dossier Details (7 cols) */}
-        <div className="lg:col-span-7">
+        <div className={`lg:col-span-7 ${mobileView === 'LIST' ? 'hidden lg:block' : 'block'}`}>
           {selectedIncident ? (
-            <div className="premium-card p-6 flex flex-col gap-4">
-              <div className="flex justify-between items-start border-b border-white/[0.06] pb-4">
+            <div className="premium-card p-4 sm:p-6 flex flex-col gap-4">
+              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-white/[0.06] pb-4 gap-3">
                 <div>
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex items-center gap-2 mb-1 flex-wrap">
                     <span className="text-xs font-mono text-cyan-400 font-bold">{selectedIncident.id}</span>
                     <span className="text-xs text-slate-500 font-mono">• {selectedIncident.callSessionId}</span>
                     <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[9px] font-mono font-black border tracking-wider uppercase ${getSeverityBadge(selectedIncident.severity)}`}>
@@ -292,14 +317,14 @@ Generated On       : ${new Date().toISOString()}
                       <span>SEVERITY: {selectedIncident.severity}</span>
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-white">{selectedIncident.title}</h3>
+                  <h3 className="text-sm sm:text-base font-bold text-white">{selectedIncident.title}</h3>
                 </div>
 
                 {/* Workflow Status Transition */}
-                <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-white/[0.08]">
+                <div className="flex items-center gap-1.5 bg-slate-950 p-1 rounded-xl border border-white/[0.08] overflow-x-auto touch-scroll-x no-scrollbar max-w-full shrink-0">
                   <button
                     onClick={() => handleUpdateStatus('INVESTIGATING')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold shrink-0 transition ${
                       selectedIncident.status === 'INVESTIGATING' ? 'bg-blue-600 text-white' : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -307,7 +332,7 @@ Generated On       : ${new Date().toISOString()}
                   </button>
                   <button
                     onClick={() => handleUpdateStatus('CONTAINED')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold shrink-0 transition ${
                       selectedIncident.status === 'CONTAINED' ? 'bg-amber-600 text-white' : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -315,7 +340,7 @@ Generated On       : ${new Date().toISOString()}
                   </button>
                   <button
                     onClick={() => handleUpdateStatus('RESOLVED')}
-                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold transition ${
+                    className={`px-2.5 py-1 rounded-lg text-[10px] font-mono font-bold shrink-0 transition ${
                       selectedIncident.status === 'RESOLVED' ? 'bg-emerald-600 text-white' : 'text-slate-400 hover:text-white'
                     }`}
                   >
@@ -325,7 +350,7 @@ Generated On       : ${new Date().toISOString()}
               </div>
 
               {/* Case Attributes Matrix */}
-              <div className="grid grid-cols-2 gap-3 text-xs font-mono">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs font-mono">
                 <div className="p-3 rounded-xl bg-slate-950/80 border border-white/[0.06]">
                   <span className="text-[10px] text-slate-500 block mb-1">IMPERSONATED VIP:</span>
                   <span className="font-semibold text-slate-200">{selectedIncident.impersonatedVIP}</span>

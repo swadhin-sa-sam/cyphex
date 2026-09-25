@@ -27,7 +27,7 @@ async def websocket_endpoint(
     
     session = session_manager.get_session(session_id) if session_id else None
     if not session:
-        session = session_manager.create_session()
+        session = session_manager.create_session(session_id=session_id)
         
     smoother = EMAScoreSmoother(alpha=settings.EMA_ALPHA)
     fusion_engine = ScoreFusionEngine()

@@ -423,7 +423,7 @@ const AlertPanel: React.FC<AlertPanelProps> = ({
             </div>
 
             {/* Risk & Confidence Gauge Strip */}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] flex flex-col">
                 <span className="text-[10px] font-mono text-slate-400 uppercase">Composite Risk</span>
                 <span className="text-xl font-bold font-mono text-red-400 mt-0.5">
@@ -477,11 +477,11 @@ const AlertPanel: React.FC<AlertPanelProps> = ({
             </div>
 
             {/* Intercepted Audio Forensic Player */}
-            <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] flex items-center justify-between">
+            <div className="p-3 rounded-lg bg-white/[0.02] border border-white/[0.06] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
               <div className="flex items-center gap-3">
                 <button
                   onClick={playForensicArtifactSound}
-                  className={`p-2 rounded-lg border transition ${
+                  className={`p-2 rounded-lg border transition shrink-0 ${
                     isPlayingAudio
                       ? 'bg-red-500 text-white border-red-400 shadow-[0_0_10px_#ef4444]'
                       : 'bg-cyan-950/80 text-cyan-300 border-cyan-500/40 hover:bg-cyan-900'
@@ -498,14 +498,14 @@ const AlertPanel: React.FC<AlertPanelProps> = ({
                   </span>
                 </div>
               </div>
-              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30">
+              <span className="text-[10px] font-mono text-cyan-400 bg-cyan-950/60 px-2 py-0.5 rounded border border-cyan-500/30 shrink-0">
                 AUDIT HASH: #B8F2
               </span>
             </div>
 
             {/* Tactical Remediation Actions */}
-            <div className="pt-2 border-t border-white/[0.08] flex flex-wrap items-center justify-between gap-3">
-              <div className="flex items-center gap-2">
+            <div className="pt-2 border-t border-white/[0.08] flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-2">
                 <button
                   onClick={() => handleMitigationAction('Severed SIP Trunk Connection (PBX Disconnect)')}
                   className="px-3 py-1.5 rounded-lg bg-red-600 hover:bg-red-700 text-white text-xs font-mono font-bold uppercase tracking-wider transition shadow-sm"
@@ -520,7 +520,7 @@ const AlertPanel: React.FC<AlertPanelProps> = ({
                 </button>
               </div>
 
-              <div className="flex items-center gap-2">
+              <div className="flex items-center justify-end gap-2">
                 {onNavigateToIncidents && (
                   <button
                     onClick={() => {
